@@ -7,7 +7,7 @@
 ?>
 
 <!DOCTYPE html>
-<mtml>
+<html>
 <head></head>
 <body>
 
