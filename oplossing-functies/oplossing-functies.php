@@ -51,6 +51,8 @@
 	<p><?= $stringBewerkt["lengte"] ?></p>
 	<p><?= $stringBewerkt["uppercase"] ?></p>
 
+	<p><?php echo ?></p>
+
 	<h1>Deel 2</h1>
 </body>
 </html>
