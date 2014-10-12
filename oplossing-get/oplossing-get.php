@@ -1,4 +1,7 @@
 <?php 
+	//Uitbreiding 2 nog bekijken!!!!
+
+
 	$artikels = array(
 		array(	"titel" => "Animating Without jQuery",
 						"datum" => "September 4th, 2014",
@@ -87,6 +90,9 @@
 	<?php if (!$nietBestaandArtikel): ?>
 		<div class="container">
 			<?php foreach ($artikels as $id => $artikel): ?>
+				<?php if ($individueelArtikel): ?>
+					<a href="oplossing-get.php">Terug naar overzicht</a>
+				<?php endif ?>
 				<article class="<?php echo (!$individueelArtikel) ? 'multiple' : 'single' ?>">
 					<h2><?php echo $artikel["titel"] ?></h1>
 					<p><?php echo $artikel["datum"] ?></p>

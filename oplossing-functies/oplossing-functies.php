@@ -34,7 +34,7 @@
 	function drukArrayAf($array)
 	{
 		
-	}
+	}	
 ?>
 
 <!DOCTYPE html>
