@@ -16,7 +16,9 @@
 
 	setlocale(LC_ALL, 'nl_NL');
 
-	$timestampFormattedDutch = strftime("%B,%P", $timestamp);
+	$timestampFormattedDutch = strftime("%d %B %Y %I:%M:%S %p", $timestamp);
+
+	var_dump( $timestampFormattedDutch );
 ?>
 
 <!DOCTYPE html>
