@@ -1,25 +1,32 @@
 <?php 
-	setcookie("loginCookie","", time()+360);
 
 	$textfile = file_get_contents("test.txt");	//neemt de inhoud van een bestand en plaatst dit in een string
 
 	$accountArray = explode(",", $textfile);	//plaats inhoud van een string in een array, met "," als scheiding
 	
-	$gebruikersnaam;
-	$paswoord;
+	$ingelogd = false;
+	$message = false;
+
 
 	if ( isset($_POST["submit"]) ) {
-		
 
-		$_COOKIE["gebruikersnaam"] 	= $_POST["gebruikersnaam"];
-		$_COOKIE["paswoord"] 				= $_POST["paswoord"];
-
-		$gebruikersnaam = $_POST["gebruikersnaam"];
-		$paswoord 			= $_POST["paswoord"];
+		if ( $_POST["gebruikersnaam"] == $accountArray[0] && $_POST["paswoord"] == $accountArray[1] ) {
+			setcookie("loginCookie",true, time()+360);
+			header("Location: oplossing-cookies.php");
+		}
+		else {
+			$message = "Gebruikersnaam en/of paswoord niet correct. Probeer opnieuw.";
+		}
 	}
+	if (isset($_COOKIE["loginCookie"])) {
+		$ingelogd = true;
+		$message = "U bent ingelogd";
+	}
+
 	
 	if ( isset($_GET["delete-cookie"]) ) {
 		setcookie("loginCookie", "", time()-3600);
+		header("Location: oplossing-cookies.php");
 	}
 ?>
 
@@ -50,33 +57,15 @@
 </head>
 <body>
 	<h1>Inloggen</h1>
-	<?php if ( isset($gebruikersnaam) && isset($paswoord) ): ?>
+	
+	<?php if ( $message ): ?>
+		<p><?= $message ?></p>
+	<?php endif ?>
 
-		<?php if ( $gebruikersnaam == $accountArray[0] && $paswoord == $accountArray[1] ): ?>
+
+	<?php if ( $ingelogd ): ?>
 			
-			<p>U bent ingelogd</p>
-			<a href="oplossing-cookies.php?delete-get=true">Uitloggen</a>
-
-		<?php else: ?>
-
-			<p class="fout">Gebruikersnaam en/of paswoord niet correct. Probeer opnieuw</p>
-			<form action="oplossing-cookies.php" method="post">
-				<ul>
-					<li>
-						<label for="gebruikersnaam">gebruikersnaam</label>
-						<input type="text" name="gebruikersnaam" id="gebruikersnaam">
-					</li>
-					<li>
-						<label for="paswoord">paswoord</label>
-						<input type="password" name="paswoord" id="paswoord">
-					</li>
-					<li>
-						<input type="submit" name="submit" value="Query verzenden">
-					</li>
-				</ul>
-			</form>
-
-		<?php endif ?>
+		<a href="oplossing-cookies.php?delete-cookie=true">Uitloggen</a>
 
 	<?php else: ?>
 

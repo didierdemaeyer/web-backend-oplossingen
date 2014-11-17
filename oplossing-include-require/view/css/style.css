@@ -1,0 +1,46 @@
+body {
+	margin:0;
+}
+
+/************************************
+**	=HEADER
+************************************/
+
+header {
+	background-color: #565DBF;
+	height: 50px;
+}
+header #logo {
+	display: block;
+	float: left;
+	font-size: 1.5em;
+	font-weight: bold;
+	line-height: 50px;	
+}
+
+header ul {
+	float: right;
+	margin: auto;
+	line-height: 50px;
+}
+header::after {
+	display: block;
+	content: "";
+	clear: both;
+}
+
+header ul li {
+	display: inline-block;
+	list-style: none;
+}
+
+header ul li a {
+	padding: 10px;
+	color: white;
+}
+
+
+/************************************
+**	=BODY
+************************************/
+
