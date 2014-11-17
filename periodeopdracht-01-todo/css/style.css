@@ -44,11 +44,6 @@ li
 
 }
 
-.not-done
-{
-	
-}
-
 .not-done:hover
 {
 	text-decoration: line-through;
@@ -80,7 +75,6 @@ li
 .done:hover:before
 {
 	background-color:lightgrey;
-
 }
 
 
@@ -142,5 +136,4 @@ li
 	text-align:center;
 	font-weight:bold;
 	float:left;
-	
 }
