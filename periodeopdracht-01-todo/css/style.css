@@ -105,8 +105,8 @@ li
 	font-size:0px;
 }
 
-[name=deleteTodo]:before,
-[name=deleteDone]:before
+[name="deleteTodo"]:before,
+[name="deleteDone"]:before
 {
 	position:absolute;
 	left:0px;
