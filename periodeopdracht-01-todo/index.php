@@ -1,12 +1,17 @@
 <?php 
+	$showError = false;
+
 	session_start();
 
 	if (isset($_POST['addTodo'])) {
-		if ($_POST['addTodo'] != "") {
+		if (trim( $_POST['description'] ) != "") {	//trim spaces at the start and end of a string => enkel spaties in de input geeft nu ook foutmelding
 			$_SESSION['todo'][] = $_POST['description'];
+		
+			header("location: index.php");	//Zorgt ervoor dat wanneer je de pagina refreshed het element niet opnieuw wordt toegevoegd		
 		}
-
-		header("location: index.php");	//Zorgt ervoor dat wanneer je de pagina refreshed het element niet opnieuw wordt toegevoegd
+		else {
+			$showError = true;
+		}
 	}
 
 
@@ -54,63 +59,70 @@
     </head>
     <body>
 
+		<?php if ($showError): ?>
+			<div class="modal error">
+      	Ahh, damn. Lege todos zijn niet toegestaan...            
+    	</div>
+		<?php endif ?>
+    
+
     <h1>Todo app</h1>
 
-    	<?php if ( empty($_SESSION['todo']) && empty($_SESSION['done'])): ?>
+  	<?php if ( empty($_SESSION['todo']) && empty($_SESSION['done'])): ?>
 
-				<p>Je hebt nog geen TODO's toegevoegd. Zo weinig werk of meesterplanner?</p>    		
+			<p>Je hebt nog geen TODO's toegevoegd. Zo weinig werk of meesterplanner?</p>    		
 
-    	<?php else: ?>
+  	<?php else: ?>
+		
+			<h2>Nog te doen</h2>
+
+			<?php if($_SESSION['todo'] != null): ?>
+
+				<ul>
+					<?php if (isset( $_SESSION['todo'] )): ?>
+						<?php foreach($_SESSION['todo'] as $key => $todo): ?>
+							<li>
+								<form action="index.php" method="POST">
+									<button title="Status wijzigen" name="toggleTodo" value="<?= $key ?>" class="status not-done"> <?= $todo ?> </button>
+									<button title="Verwijderen" name="deleteTodo" value="<?= $key ?>">Verwijder</button>
+								</form>
+							</li>
+						<?php endforeach ?>
+					<?php endif ?>
+				</ul>
+
+			<?php else: ?>
 			
-				<h2>Nog te doen</h2>
+				<p>Schouderklopje, alles is gedaan!</p>
 
-				<?php if($_SESSION['todo'] != null): ?>
+			<?php endif ?>
+
+			
+			<h2>Done and done!</h2>
+			
+			<?php if (isset( $_SESSION['done'] )): ?>
+				<?php if($_SESSION['done'] != null): ?>
 
 					<ul>
-						<?php if (isset( $_SESSION['todo'] )): ?>
-							<?php foreach($_SESSION['todo'] as $key => $todo): ?>
+							<?php foreach($_SESSION['done'] as $key => $done): ?>
 								<li>
 									<form action="index.php" method="POST">
-										<button title="Status wijzigen" name="toggleTodo" value="<?= $key ?>" class="status not-done"> <?= $todo ?> </button>
-										<button title="Verwijderen" name="deleteTodo" value="<?= $key ?>">Verwijder</button>
+										<button title="Status wijzigen" name="toggleDone" value="<?= $key ?>" class="status done"> <?= $done ?> </button>
+										<button title="Verwijderen" name="deleteDone" value="<?= $key ?>">Verwijder</button>
 									</form>
 							</li>
-							<?php endforeach ?>
-						<?php endif ?>
+							<?php endforeach ?>		
 					</ul>
 
 				<?php else: ?>
-				
-					<p>Schouderklopje, alles is gedaan!</p>
-
-				<?php endif ?>
-
-				
-				<h2>Done and done!</h2>
-				
-				<?php if (isset( $_SESSION['done'] )): ?>
-					<?php if($_SESSION['done'] != null): ?>
-
-						<ul>
-								<?php foreach($_SESSION['done'] as $key => $done): ?>
-									<li>
-										<form action="index.php" method="POST">
-											<button title="Status wijzigen" name="toggleDone" value="<?= $key ?>" class="status done"> <?= $done ?> </button>
-											<button title="Verwijderen" name="deleteDone" value="<?= $key ?>">Verwijder</button>
-										</form>
-								</li>
-								<?php endforeach ?>		
-						</ul>
-
-					<?php else: ?>
-						
-						<p>Werk aan de winkel...</p>
 					
-					<?php endif ?>
+					<p>Werk aan de winkel...</p>
 				
-				<?php endif ?>	
+				<?php endif ?>
 			
-			<?php endif ?>
+			<?php endif ?>	
+		
+		<?php endif ?>
 								
 			
 		
