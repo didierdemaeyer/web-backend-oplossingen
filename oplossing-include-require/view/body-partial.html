@@ -1,0 +1,27 @@
+<header>
+		<span id="logo">Oplossing Include/Require</span>
+		<ul>
+			<li><a href="#">Nieuws</a></li>
+			<li><a href="#">Onze Redactie</a></li>
+			<li><a href="#">Contact</a></li>
+		</ul>
+	</header>
+	
+
+	<div class="content">
+		<h1>Nieuws</h1>
+		
+		<?php foreach ($artikels as $key => $value): ?>
+			<article>
+				<h1><?= $artikels[ $key ][ "title" ] ?></h1>
+				<p><?= $artikels[ $key ][ "text" ] ?></p>
+				<p>Kernwoorden: 
+				<?php foreach ($artikels[ $key ][ "tags" ] as $keyTag => $kernwoord): ?>
+					 <?= $kernwoord ?>,
+				<?php endforeach ?>
+				</p>
+				
+			</article>
+		<?php endforeach ?>
+		
+	</div>
