@@ -69,7 +69,7 @@
 	} 
 	catch (Exception $e) 
 	{
-		$message = "Er ging iets mis: " + $e->getMessage();
+		$message = "Er ging iets mis: " . $e->getMessage();
 	}
 
  ?>
