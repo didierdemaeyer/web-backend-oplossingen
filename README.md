@@ -3,5 +3,4 @@ web-backend-oplossingen
 
 Extra's:
 
-- opdracht-crud-query: * Deel 2
-                       * Deel 3
+- opdracht-crud-query:  deel 2 en deel 3
