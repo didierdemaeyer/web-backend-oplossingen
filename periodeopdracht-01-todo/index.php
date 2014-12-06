@@ -17,6 +17,10 @@
 
 	/* TODO <=> DONE */
 
+	/* Voor een echte ToggleTodo te doen kan je met een variabele waar je de absolute waarde van neemt kijken of hij al gedaan is of niet.
+			elke keer dat je toggled moet je dan de variabele -1 doen en daar weer de absolute waarde van nemen, hierdoor is deze variabele altijd
+			0 of 1 en werkt het zoals een boolean */ 
+
 	if (isset($_POST['toggleTodo'])) {
 		$_SESSION['done'][] = $_SESSION['todo'][$_POST['toggleTodo']];
 		unset($_SESSION['todo'][$_POST['toggleTodo']]);
@@ -61,7 +65,7 @@
 
 		<?php if ($showError): ?>
 			<div class="modal error">
-      	Ahh, damn. Lege todos zijn niet toegestaan...            
+      	<p>Ahh, damn. Lege todos zijn niet toegestaan...</p>
     	</div>
 		<?php endif ?>
     
