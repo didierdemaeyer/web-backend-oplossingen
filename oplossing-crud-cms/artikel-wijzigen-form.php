@@ -5,6 +5,11 @@
 	$notificationType = null;
 	$notificationMessage = null;
 
+	if ( isset( $_SESSION[ 'notification'] ) ) {
+		$notificationType = $_SESSION[ 'notification' ][ 'type' ];
+		$notificationMessage = $_SESSION[ 'notification' ][ 'message' ];
+	}
+
 	if ( isset($_COOKIE['login']) ) {
 
 		$userArray = explode( ',', $_COOKIE['login'] );
@@ -20,7 +25,7 @@
 
 		$emailStatement = $db->prepare( $emailQuery );
 
-		$emailStatement->bindParam(':email', $email);
+		$emailStatement->bindValue(':email', $email);
 
 		$emailStatement->execute();
 
@@ -37,11 +42,38 @@
 			$saltedEmailNew = hash( 'sha512' , $salt . $email );
 
 			if ( $saltedEmailNew == $saltedEmail) {
-				if ( isset($_SESSION['notification']) ) {
-					$notificationType = $_SESSION[ 'notification' ][ 'type' ];
-					$notificationMessage = $_SESSION[ 'notification' ][ 'message' ];
+				
+				if ( isset($_GET['artikel']) ) {
+					$artikelId = $_GET['artikel'];
+
+					$artikelQuery = 'SELECT * 
+														FROM artikels 
+														WHERE id = :id';
+
+					$artikelStatement = $db->prepare( $artikelQuery );
+
+					$artikelStatement->bindValue(':id', $artikelId);
+
+					$artikelStatement->execute();
+
+					$artikelArray = array();
+					while ($row = $artikelStatement->fetch( PDO::FETCH_ASSOC )) {		
+						$artikelArray[] = $row;
+					}
+
+					var_dump($artikelArray);
+
+					$titel = $artikelArray[0]['titel'];
+					$artikel = $artikelArray[0]['artikel'];
+					$kernwoorden = $artikelArray[0]['kernwoorden'];
+
+					$datum = $artikelArray[0]['datum'];
+					$datumExploded = explode('-', $datum);	
+					$datum = $datumExploded[2] . "-" . $datumExploded[1] . "-" . $datumExploded[0];		/* datum omdraaien van jjjj-mm-dd  =>  dd-mm-jjjj */
+
+
 				}
-				session_destroy();
+
 			}
 			else {
 				setcookie('login', "", time() - 99999999);
@@ -59,11 +91,12 @@
 
  ?>
 
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
 	<meta charset="UTF-8">
-	<title>Artikel toevoegen - Oplossing CRUD CMS</title>
+	<title>Artikel wijzigen - Oplossing CRUD CMS</title>
 	<style>
 		
 		form ul {
@@ -101,31 +134,33 @@
 	
 	<a href="artikel-overzicht.php">Terug naar overzicht</a>
 
-	<h1>Artikel toevoegen</h1>
+	<h1>Artikel wijzigen</h1>
 
 	<?php if ( isset($notificationMessage) ): ?>
 		<p class="<?= $notificationType ?>"><?= $notificationMessage ?></p>
 	<?php endif ?>
 
-	<form action="artikel-toevoegen-process.php" method="POST">
+	<form action="artikel-wijzigen.php" method="POST">
     <ul>
       <li>
 		    <label for="titel">Titel</label>
-		    <input id="titel" type="text" name="titel"></input>
+		    <input id="titel" type="text" name="titel" value="<?= $titel ?>"></input>
 			</li>
       <li>
         <label for="artikel">Artikel</label>
-        <textarea id="artikel" name="artikel"></textarea>
+        <textarea id="artikel" name="artikel"><?= $artikel ?></textarea>
       </li>
       <li>
         <label for="kernwoorden">Kernwoorden</label>
-        <input id="kernwoorden" type="text" name="kernwoorden"></input>
+        <input id="kernwoorden" type="text" name="kernwoorden" value="<?= $kernwoorden ?>"></input>
       </li>
       <li>
         <label for="datum">Datum (dd-mm-jjjj)</label>
-        <input id="datum" type="date" name="datum"></input>
+        <input id="datum" type="date" name="datum" value="<?= $datum ?>"></input>
       </li>
-      <input type="submit" name="artikel-toevoegen" value="Artikel toevoegen"></input>
+			<input type="hidden" name="id" value="<?= $artikelId ?>">
+
+      <input type="submit" name="artikel-wijzigen" value="Artikel wijzigen"></input>
     </ul>
 	</form>
 	

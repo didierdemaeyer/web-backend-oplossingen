@@ -1,6 +1,16 @@
 <?php 
+	
+	session_start();
 
-	$message = null;
+	$notificationType = null;
+	$notificationMessage = null;
+
+	if ( isset($_SESSION['notification'] )) {
+		$notificationType = $_SESSION[ 'notification' ][ 'type' ];
+		$notificationMessage = $_SESSION[ 'notification' ][ 'message' ];
+
+		session_destroy();
+	}
 
 	if ( isset($_COOKIE['login']) ) {
 
@@ -34,7 +44,24 @@
 			$saltedEmailNew = hash( 'sha512' , $salt . $email );
 
 			if ( $saltedEmailNew == $saltedEmail) {
-				$message = "Welkom.";
+				
+				$artikelQuery = 'SELECT * 
+													FROM artikels
+													WHERE is_archived = 0';
+
+				$artikelStatement = $db->prepare( $artikelQuery );
+
+				$artikelStatement->execute();
+
+				$artikels = array();
+				while ($row = $artikelStatement->fetch( PDO::FETCH_ASSOC )) {
+					$artikels[] = $row;
+				}
+
+				var_dump($artikels);
+
+
+
 			}
 			else {
 				setcookie('login', "", time() - 99999999);
@@ -57,6 +84,30 @@
 <head>
 	<meta charset="UTF-8">
 	<title>Overzicht Artikels - Oplossing CRUD CMS</title>
+	<style>
+		
+		.active {
+			background-color: #FAFAFA;
+		}
+
+		.inactive {
+			background-color: #DDD;
+		}
+
+		.error {
+			padding-left: 10px;
+			background-color: #F2DEDE;
+			border: 1px solid #EED3D7;
+			border-radius: 5px;
+		}
+
+		.succes {
+			padding-left: 10px;
+			background-color: #90EE90;
+			border-radius: 5px;
+		}
+
+	</style>
 </head>
 <body>
 
@@ -64,13 +115,30 @@
 
 	<h1>Overzicht van de artikels</h1>
 
-	<?php if ( isset($message) ): ?>
-		<p><?= $message ?></p>
+	<?php if ( isset($notificationMessage) ): ?>
+		<p class="<?= $notificationType ?>"><?= $notificationMessage ?></p>
 	<?php endif ?>
 
-	<p>Geen artikels gevonden</p>
+	<?php if ( empty($artikels) ): ?>
+		<p>Geen artikels gevonden</p>
+	<?php endif ?>
+	
 
 	<a href="artikel-toevoegen-form.php">Voeg een artikel toe</a>
+
+	<?php foreach ($artikels as $key => $value): ?>
+		<article class="<?= ($value[ 'is_active' ]) ? 'active' : 'inactive' ?>">
+			<h3><?= $value[ 'titel' ] ?></h3>
+			<ul>
+				<li>Artikel: <?= $value[ 'artikel' ] ?></li>
+				<li>Kernwoorden: <?= $value[ 'kernwoorden' ] ?></li>
+				<li>Datum: <?= $value[ 'datum' ] ?></li>
+			</ul>
+			<a href="artikel-wijzigen-form.php?artikel=<?= $value[ 'id' ] ?>">artikel wijzigen</a> | 
+			<a href="artikel-activeren.php?artikel=<?= $value[ 'id' ] ?>"><?= $value[ 'is_active' ] ? 'artikel deactiveren' : 'artikel activeren' ?></a> | 
+			<a href="artikel-verwijderen.php?artikel=<?= $value[ 'id' ] ?>">artikel verwijderen</a>
+		</article>
+	<?php endforeach ?>
 
 </body>
 </html>

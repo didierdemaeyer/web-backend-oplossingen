@@ -2,7 +2,7 @@
 
 	session_start();
 
-	if ( isset($_POST[ 'artikel-toevoegen' ]) ) {
+	if ( isset($_POST[ 'artikel-wijzigen' ]) ) {
 
 		/* Kijken of de inputvelden niet leeg zijn*/
 		if ( 	!empty( $_POST[ 'titel' ])
@@ -10,6 +10,7 @@
 					&& !empty( $_POST[ 'kernwoorden' ])
 					&& !empty( $_POST[ 'datum' ]) ) {
 
+			$artikelId = $_POST[ 'id' ];
 			$titel = $_POST[ 'titel' ];
 			$artikel = $_POST[ 'artikel' ];
 			$kernwoorden = $_POST[ 'kernwoorden' ];
@@ -28,41 +29,47 @@
 
 				$db = new PDO('mysql:host=localhost;dbname=opdracht-crud-cms', 'root', 'root');
 
-					$insertQuery = 'INSERT INTO artikels (titel, artikel, kernwoorden, datum)
-														VALUES (:titel, :artikel, :kernwoorden, :datum)';
+					$updateQuery = 'UPDATE artikels
+														SET titel = :titel,
+																artikel	= :artikel,
+																kernwoorden = :kernwoorden,
+																datum = :datum
+														WHERE id = :id
+														LIMIT 1';
 							
-					$insertStatement = $db->prepare( $insertQuery );
+					$updateStatement = $db->prepare( $updateQuery );
 
-					$insertStatement->bindValue(':titel', $titel);
-					$insertStatement->bindValue(':artikel', $artikel);
-					$insertStatement->bindValue(':kernwoorden', $kernwoorden);
-					$insertStatement->bindValue(':datum', $datum);
+					$updateStatement->bindValue(':titel', $titel);
+					$updateStatement->bindValue(':artikel', $artikel);
+					$updateStatement->bindValue(':kernwoorden', $kernwoorden);
+					$updateStatement->bindValue(':datum', $datum);
+					$updateStatement->bindValue(':id', $artikelId);
 
-					$artikelToegevoegd = $insertStatement->execute();
+					$artikelGewijzigd = $updateStatement->execute();
 
-					if ($artikelToegevoegd) {
+					if ($artikelGewijzigd) {
 						$_SESSION[ 'notification' ][ 'type' ] = "succes";
-						$_SESSION[ 'notification' ][ 'message' ] = "Het artikel werd succesvol toegevoegd.";
+						$_SESSION[ 'notification' ][ 'message' ] = "Het artikel werd succesvol gewijzigd.";
 					}
 					else {
 						$_SESSION[ 'notification' ][ 'type' ] = "error";
-						$_SESSION[ 'notification' ][ 'message' ] = "Er ging iets mis. Het artikel kon niet toegevoegd worden.";
+						$_SESSION[ 'notification' ][ 'message' ] = "Er ging iets mis. Het artikel is niet gewijzigd.";
 					}
-
-					header('location: artikel-toevoegen-form.php');
 				}
 				else {
 					$_SESSION[ 'notification' ][ 'type' ] = "error";
 					$_SESSION[ 'notification' ][ 'message' ] = "Er ging iets mis. De ingevulde tijd is fout.";
-				}	
-			
+				}
 		}
 		else {
 			$_SESSION[ 'notification' ][ 'type' ] = "error";
 			$_SESSION[ 'notification' ][ 'message' ] = "Er ging iets mis. Niet alle velden zijn ingevuld.";
-			
-			header('location: artikel-toevoegen-form.php');
 		}
+
+		header('location: artikel-wijzigen-form.php?artikel=' . $artikelId);
+	}
+	else {
+		header('location: artikel-overzicht.php');
 	}
 
  ?>
