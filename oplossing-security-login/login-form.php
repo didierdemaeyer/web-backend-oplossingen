@@ -2,23 +2,21 @@
 	
 	session_start();
 
-	$notificationType = null;
-	$notificationMessage = null;
-	$email = "";
-	$paswoord = "";
+	function __autoload( $classname )
+	{
+		require_once( $classname . '.php' );
+	}
 
-	if ( isset($_COOKIE['login']) ) {
+	$notification = null;
+
+	$connection = new PDO('mysql:host=localhost;dbname=opdracht-security-login', 'root', 'root');
+
+	if ( User::validate( $connection ) ) {
 		header('location: dashboard.php');
 	}
 	else {
-		if ( isset($_SESSION['notification']) ) {
-			$notificationType = $_SESSION['notification']['type'];
-			$notificationMessage = $_SESSION['notification']['message'];
-
-			/* SESSION verwijderen nadat je de notificationMessage en Type hebt gezet,
-					zodat je niet elke keer de notification message opnieuw te zien krijgt als je refresht */
-			session_destroy();	
-		}
+		User::logout();
+		$notification = Notification::getNotification();
 	}
 
  ?>
@@ -62,20 +60,20 @@
 <body>
 	<h1>Inloggen</h1>
 
-	<?php if ( $notificationMessage ): ?>
-		<p class="<?= $notificationType ?>"><?= $notificationMessage ?></p>
+	<?php if ( $notification ): ?>
+		<p class="<?= $notification[ 'type' ] ?>"><?= $notification[ 'message' ] ?></p>
 	<?php endif ?>
 
 	<form action="login-process.php" method="POST">
 		<ul>
 			<li>
 				<label for="e-mail">e-mail</label>
-				<input type="text" id="e-mail" name="e-mail" value="<?= $email ?>">
+				<input type="text" id="e-mail" name="e-mail">
 			</li>
 
 			<li>
 				<label for="paswoord">paswoord</label>
-				<input type="password" id="paswoord" name="paswoord" value="<?= $paswoord ?>">
+				<input type="password" id="paswoord" name="paswoord">
 			</li>
 		</ul>
 

@@ -2,12 +2,15 @@
 
 	session_start();
 
-	if ( isset($_COOKIE['login']) ) {
+	function __autoload( $classname )
+	{
+		require_once( $classname . '.php' );
+	}
 
-	$_SESSION['notification']['type'] = "succes";
-	$_SESSION['notification']['message'] = "U bent uitgelogd. Tot de volgende keer";
+	$logout = User::logout();
 
-	setcookie('login', "", time() - 99999999);
+	if ( $logout ) {
+		$notification = new Notification( 'succes', 'U bent uitgelogd. Tot de volgende keer.');
 	}
 	
 	header('location: login-form.php');

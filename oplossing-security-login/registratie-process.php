@@ -2,6 +2,10 @@
 
 	session_start();
 
+	function __autoload( $classname )
+	{
+		require_once( $classname . '.php' );
+	}
 
 	/* Genereer paswoord */ 
 	if ( isset($_POST['genereer-paswoord']) ) {
@@ -17,84 +21,54 @@
 	elseif ( isset($_POST['registreer']) ) {
 
 		$email = $_POST['e-mail'];
-		$paswoord = $_POST['paswoord'];
+		$password = $_POST['paswoord'];
 
 		$isEmail = filter_var($email, FILTER_VALIDATE_EMAIL);	/* checken of het wel een e-mail adres is */
 
 		if ( !$isEmail ) {
-			$_SESSION['notification']['type'] = "error";
-			$_SESSION['notification']['message'] = "Het ingegeven e-mail adres is niet geldig. Vul een geldig e-mail adres in.";
+			new Notification( 'error', 'Het ingegeven e-mail adres is niet geldig. Vul een geldig e-mail adres in.' );
 
 			header('location: registratie-form.php');
 		}
-		elseif ( $paswoord == "") {
+		elseif ( $password == '') {
 			$_SESSION['registratie']['e-mail'] = $_POST['e-mail'];
-			$_SESSION['registratie']['paswoord'] = "";
+			$_SESSION['registratie']['paswoord'] = '';
 
-			$_SESSION['notification']['type'] = "error";
-			$_SESSION['notification']['message'] = "Het ingegeven paswoord is niet geldig. Vul een geldig paswoord in.";
+			new Notification( 'error', 'Het ingegeven paswoord is niet geldig. Vul een geldig paswoord in.' );
 
 			header('location: registratie-form.php');
 		}
 		else {
 
-			$db = new PDO('mysql:host=localhost;dbname=opdracht-security-login', 'root', 'root');
+			$connection = new PDO('mysql:host=localhost;dbname=opdracht-security-login', 'root', 'root');
 
-			$emailQuery = 'SELECT * 
+			$db = new Database( $connection );
+
+			$queryString = 'SELECT * 
 												FROM users
 												WHERE email = :email';
 
-			$emailStatement = $db->prepare( $emailQuery );
+			$parameters = array( ':email' => $email );
 
-			$emailStatement->bindParam(':email', $email);
+			$userData = $db->query( $queryString, $parameters );
 
-			$emailStatement->execute();
-
-			/* Kijk of het e-mail adres al bestaat in de databank, als het bestaat wordt de database rij geplaatst in de array $users */
-			$users = array();
-			while ($row = $emailStatement->fetch( PDO::FETCH_ASSOC )) {		
-				$users[] = $row;
-			}
-			// var_dump($users);
-
-			if ( isset( $users[0] ) ) {	/* Als er iets in de array $users zit betekent dit dat het email adres al in de databank zit */
-				$_SESSION['notification']['type'] = "error";
-				$_SESSION['notification']['message'] = "Het ingegeven e-mail adres (" . $email . ") is reeds in gebruik.";
+			/* Als er iets in de array $userData[ 'data' ] zit betekent dit dat het email adres al in de databank zit */
+			if ( isset( $userData[ 'data' ][ 0 ] ) ) {	
+				new Notification( 'error', 'Het ingegeven e-mail adres (' . $email . ') is reeds in gebruik.' );
 
 				header('location: registratie-form.php');
 			}
 			else {
-
-				$salt = uniqid(mt_rand(), true);
-
-				$hashedPaswoord = hash('SHA512', ($paswoord . $salt) );
-
-				$insertQuery = 'INSERT INTO users (email, salt, hashed_password, last_login_time)
-													VALUES (:email, :salt, :hashed_password, NOW())';
+				User::createNewUser( $connection, $email, $password);
 				
-				$insertStatement = $db->prepare( $insertQuery );
+				new Notification( 'succes', 'Uw registratie is gelukt. Welkom.' );
 
-				$insertStatement->bindParam(':email', $email);
-				$insertStatement->bindParam(':salt', $salt);
-				$insertStatement->bindParam(':hashed_password', $hashedPaswoord);
-
-				$insertStatement->execute();
-
-				/* COOKIE aanmaken geldig voor 30 dagen */
-				$hashedEmail = hash( 'sha512', $salt . $email );
-				$cookieValue = $email . "," . $hashedEmail;
-
-				$cookie	=	setcookie( 'login', $cookieValue, time() + 2592000 );	/* => 30 * 24 * 60 * 60 == 30 dagen  */ 
-
-
-				/* SESSION verwijderen zodat er geen foutmelding komt wanneer je terug op registratie pagina komt */
-				session_destroy();
+				/* SESSION unsetten zodat er geen ingegeven paswoord en email komt wanneer je terug op registratie pagina komt */
+				unset( $_SESSION[ 'registratie'] );
 
 				header('location: dashboard.php');
 			}
-
 		}
-
 	}
 	else {
 		header('location: login-form.php');

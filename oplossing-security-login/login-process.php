@@ -2,54 +2,55 @@
 		
 	session_start();
 
+	function __autoload( $classname )
+	{
+		require_once( $classname . '.php' );
+	}
+
+	if ( isset($_SESSION['notification'])) {
+		var_dump($_SESSION['notification']);
+	}
+
 	if ( isset($_POST['inloggen']) ) {
 
 		$email = $_POST['e-mail'];
-		$paswoord = $_POST['paswoord'];
+		$password = $_POST['paswoord'];
 
-		$db = new PDO('mysql:host=localhost;dbname=opdracht-security-login', 'root', 'root');
+		$connection = new PDO('mysql:host=localhost;dbname=opdracht-security-login', 'root', 'root');
 
-		$emailQuery = 'SELECT * 
+		$db = new Database( $connection );
+
+		$queryString = 'SELECT * 
 											FROM users
 											WHERE email = :email';
 
-		$emailStatement = $db->prepare( $emailQuery );
+		$parameters = array( ':email' => $email );
 
-		$emailStatement->bindParam(':email', $email);
+		$userData = $db->query( $queryString, $parameters );
 
-		$emailStatement->execute();
+		if ( isset($userData[ 'data' ][ 0 ]) ) {
+			$salt = $userData[ 'data' ][ 0 ][ 'salt' ];
 
-		$user = array();
-		while ($row = $emailStatement->fetch( PDO::FETCH_ASSOC )) {		
-			$user[] = $row;
-		}
-		var_dump($user);
+			$hashedPassword = hash( 'sha512', $password . $salt );
 
-		if ( isset($user[0]) ) {
-			$salt = $user[0]['salt'];
+			var_dump( $userData );
 
-			$hashedPassword = hash('SHA512', ($paswoord . $salt) );
-
-			if ( $hashedPassword == $user['0']['hashed_password'] ) {
+			if ( $hashedPassword == $userData[ 'data' ][ 0 ][ 'hashed_password' ] ) {
 				/* COOKIE aanmaken geldig voor 30 dagen */
-				$hashedEmail = hash( 'sha512', $salt . $email );
-				$cookieValue = $email . "," . $hashedEmail;
+				User::createCookie( $salt, $email);
 
-				$cookie	=	setcookie( 'login', $cookieValue, time() + 2592000 );	/* => 30 * 24 * 60 * 60 == 30 dagen  */ 
+				new Notification( 'succes', 'Welkom, u bent ingelogd.' );
 
 				header('location: dashboard.php');
 			}
 			else {
-				$_SESSION['notification']['type'] = "error";
-				$_SESSION['notification']['message'] = "De combinatie van het e-mail adres en paswoord is fout. Probeer opnieuw";
+				new Notification( 'error', 'De combinatie van het e-mail adres en paswoord is fout. Probeer opnieuw');
 
 				header('location: login-form.php');
 			}
-
 		}
 		else {
-			$_SESSION['notification']['type'] = "error";
-			$_SESSION['notification']['message'] = "De combinatie van het e-mail adres en paswoord is fout. Probeer opnieuw";
+			new Notification( 'error', 'De combinatie van het e-mail adres en paswoord is fout. Probeer opnieuw');
 
 			header('location: login-form.php');
 		}
@@ -57,5 +58,6 @@
 	else {
 		header('location: login-form.php');
 	}
+
 
  ?>

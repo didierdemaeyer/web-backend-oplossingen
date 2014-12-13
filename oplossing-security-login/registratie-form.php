@@ -2,13 +2,19 @@
 	
 	session_start();
 
-	$notificationType = null;
-	$notificationMessage = null;
-	$email = "";
-	$paswoord = "";
+	function __autoload( $classname )
+	{
+		require_once( $classname . '.php' );
+	}
+
+	$notification = null;
+	$email = null;
+	$paswoord = null;
 
 
-	if ( isset($_COOKIE['login']) ) {
+	$connection = new PDO('mysql:host=localhost;dbname=opdracht-security-login', 'root', 'root');
+
+	if ( User::validate( $connection ) ) {
 		header('location: dashboard.php');
 	}
 	else {
@@ -17,15 +23,10 @@
 			$paswoord = $_SESSION['registratie']['paswoord'];
 		}
 
-		if ( isset($_SESSION['notification']) ) {
-			$notificationType = $_SESSION['notification']['type'];
-			$notificationMessage = $_SESSION['notification']['message'];
-		}
+		$notification = Notification::getNotification();
 	}
 
-	
-
-	var_dump($_SESSION);
+	// var_dump($_SESSION);
  ?>
 
 <!DOCTYPE html>
@@ -55,13 +56,19 @@
 			border-radius: 5px;
 		}
 
+		.succes {
+			padding-left: 10px;
+			background-color: #90EE90;
+			border-radius: 5px;
+		}
+
 	</style>
 </head>
 <body>
 	<h1>Registreren</h1>
 
-	<?php if ( $notificationMessage ): ?>
-		<p class="<?= $notificationType ?>"><?= $notificationMessage ?></p>
+	<?php if ( $notification ): ?>
+		<p class="<?= $notification[ 'type' ] ?>"><?= $notification[ 'message' ] ?></p>
 	<?php endif ?>
 
 	<form action="registratie-process.php" method="POST">
