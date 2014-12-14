@@ -2,78 +2,38 @@
 	
 	session_start();
 
-	$notificationType = null;
-	$notificationMessage = null;
-
-	if ( isset($_SESSION['notification'] )) {
-		$notificationType = $_SESSION[ 'notification' ][ 'type' ];
-		$notificationMessage = $_SESSION[ 'notification' ][ 'message' ];
-
-		session_destroy();
+	function __autoload( $classname )
+	{
+		require_once( $classname . '.php' );
 	}
 
-	if ( isset($_COOKIE['login']) ) {
+	$notification = null;
 
-		$userArray = explode( ',', $_COOKIE['login'] );
+	$connection = new PDO('mysql:host=localhost;dbname=opdracht-crud-cms', 'root', 'root');
 
-		$email = $userArray[0];
-		$saltedEmail = $userArray[1];
+	if ( User::validate( $connection )) {
+		$notification = Notification::getNotification();
 
-		$db = new PDO('mysql:host=localhost;dbname=opdracht-crud-cms', 'root', 'root');
-
-		$emailQuery = 'SELECT * 
-											FROM users
-											WHERE email = :email';
-
-		$emailStatement = $db->prepare( $emailQuery );
-
-		$emailStatement->bindParam(':email', $email);
-
-		$emailStatement->execute();
-
-		/* Kijk of het e-mail adres al bestaat in de databank, als het bestaat wordt de database rij geplaatst in de array $users */
-		$user = array();
-		while ($row = $emailStatement->fetch( PDO::FETCH_ASSOC )) {		
-			$user[] = $row;
-		}
-		// var_dump($user);
-
-		if ( isset($user[0]) ) {
-			$salt = $user[0]['salt'];
-
-			$saltedEmailNew = hash( 'sha512' , $salt . $email );
-
-			if ( $saltedEmailNew == $saltedEmail) {
-				
-				$artikelQuery = 'SELECT * 
-													FROM artikels
-													WHERE is_archived = 0';
-
-				$artikelStatement = $db->prepare( $artikelQuery );
-
-				$artikelStatement->execute();
-
-				$artikels = array();
-				while ($row = $artikelStatement->fetch( PDO::FETCH_ASSOC )) {
-					$artikels[] = $row;
-				}
-
-				var_dump($artikels);
+		$cookieExplode = explode( ',', $_COOKIE['login'] );		/* email adres uit cookie halen */
+		$email = $cookieExplode[ 0 ];
 
 
+		/* Artikels ophalen */
+		$db = new Database( $connection );
 
-			}
-			else {
-				setcookie('login', "", time() - 99999999);
-				header('location: login-form.php');
-			}
-		}
-		else {
-			setcookie('login', "", time() - 99999999);
-			header('location: login-form.php');
-		}
+		$queryString = 'SELECT * 
+											FROM artikels
+											WHERE is_archived = 0';
+
+		$artikelData = $db->query( $queryString, null );
+		$artikels = $artikelData[ 'data' ];
+
+		// var_dump($artikels);
+
 	}
 	else {
+		User::logout();
+		$notification = new Notification( 'error', 'Er ging iets mis tijdens het inloggen. Probeer opnieuw');
 		header('location: login-form.php');
 	}
 
@@ -111,12 +71,14 @@
 </head>
 <body>
 
-	<a href="dashboard.php">Terug naar dashboard</a> | Ingelogd als <?= $email ?> | <a href="logout.php">Uitloggen</a>
+	<p>
+		<a href="dashboard.php">Terug naar dashboard</a> | Ingelogd als <?= $email ?> | <a href="logout.php">Uitloggen</a>
+	</p>
 
 	<h1>Overzicht van de artikels</h1>
 
-	<?php if ( isset($notificationMessage) ): ?>
-		<p class="<?= $notificationType ?>"><?= $notificationMessage ?></p>
+	<?php if ( isset($notification) ): ?>
+		<p class="<?= $notification[ 'type' ] ?>"><?= $notification[ 'message' ] ?></p>
 	<?php endif ?>
 
 	<?php if ( empty($artikels) ): ?>

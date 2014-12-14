@@ -2,74 +2,83 @@
 
 	session_start();
 
-	if ( isset($_POST[ 'artikel-wijzigen' ]) ) {
+	function __autoload( $classname )
+	{
+		require_once( $classname . '.php' );
+	}
 
-		/* Kijken of de inputvelden niet leeg zijn*/
-		if ( 	!empty( $_POST[ 'titel' ])
-					&& !empty( $_POST[ 'artikel' ])
-					&& !empty( $_POST[ 'kernwoorden' ])
-					&& !empty( $_POST[ 'datum' ]) ) {
+	$connection = new PDO('mysql:host=localhost;dbname=opdracht-crud-cms', 'root', 'root');
 
+	if ( User::validate( $connection )) {
+		
+		if ( isset($_POST[ 'artikel-wijzigen' ]) ) {
 			$artikelId = $_POST[ 'id' ];
-			$titel = $_POST[ 'titel' ];
-			$artikel = $_POST[ 'artikel' ];
-			$kernwoorden = $_POST[ 'kernwoorden' ];
-			$datum = $_POST[ 'datum' ];
 
-			$datumExploded = explode('-', $datum);
-
-			/* Kijken of de datum wel een correcte datum is */
-			if ( 	strlen( $datumExploded[0] ) == 2
-						&& strlen( $datumExploded[1] ) == 2
-						&& strlen( $datumExploded[2] ) == 4
-						&& checkdate( $datumExploded[1] , $datumExploded[0] , $datumExploded[2] ) ) {
+			/* Kijken of de inputvelden niet leeg zijn*/
+			if ( 	!empty( $_POST[ 'titel' ])
+						&& !empty( $_POST[ 'artikel' ])
+						&& !empty( $_POST[ 'kernwoorden' ])
+						&& !empty( $_POST[ 'datum' ]) ) {
 				
-				/* datum string in juiste volgorde zetten zodat */
-				$datum = $datumExploded[2] . "-" . $datumExploded[1] . "-" . $datumExploded[0];
+				$titel = $_POST[ 'titel' ];
+				$artikel = $_POST[ 'artikel' ];
+				$kernwoorden = $_POST[ 'kernwoorden' ];
+				$datum = $_POST[ 'datum' ];
 
-				$db = new PDO('mysql:host=localhost;dbname=opdracht-crud-cms', 'root', 'root');
+				$datumExploded = explode('-', $datum);
 
-					$updateQuery = 'UPDATE artikels
+				/* Kijken of de datum wel een correcte datum is */
+				if ( 	strlen( $datumExploded[0] ) == 2
+							&& strlen( $datumExploded[1] ) == 2
+							&& strlen( $datumExploded[2] ) == 4
+							&& checkdate( $datumExploded[1] , $datumExploded[0] , $datumExploded[2] ) ) {
+					
+					/* datum string in juiste volgorde zetten zodat het door de databank geaccepteerd wordt */
+					$datum = $datumExploded[2] . "-" . $datumExploded[1] . "-" . $datumExploded[0];
+
+					$db = new Database( $connection );
+
+					$queryString = 	'UPDATE artikels
 														SET titel = :titel,
 																artikel	= :artikel,
 																kernwoorden = :kernwoorden,
 																datum = :datum
 														WHERE id = :id
 														LIMIT 1';
-							
-					$updateStatement = $db->prepare( $updateQuery );
 
-					$updateStatement->bindValue(':titel', $titel);
-					$updateStatement->bindValue(':artikel', $artikel);
-					$updateStatement->bindValue(':kernwoorden', $kernwoorden);
-					$updateStatement->bindValue(':datum', $datum);
-					$updateStatement->bindValue(':id', $artikelId);
+					$parameters = array( 	':titel' 		=> $titel,
+																':artikel' 	=> $artikel,
+																':kernwoorden' => $kernwoorden,
+																':datum' => $datum,
+																':id' => $artikelId );
 
-					$artikelGewijzigd = $updateStatement->execute();
+					$artikelGewijzigd = $db->query( $queryString, $parameters );
 
-					if ($artikelGewijzigd) {
-						$_SESSION[ 'notification' ][ 'type' ] = "succes";
-						$_SESSION[ 'notification' ][ 'message' ] = "Het artikel werd succesvol gewijzigd.";
+					if ( $artikelGewijzigd ) {
+						new Notification( 'succes', 'Het artikel werd succesvol gewijzigd.' );
 					}
 					else {
-						$_SESSION[ 'notification' ][ 'type' ] = "error";
-						$_SESSION[ 'notification' ][ 'message' ] = "Er ging iets mis. Het artikel is niet gewijzigd.";
+						new Notification( 'error', 'Er ging iets mis. Het artikel is niet gewijzigd.' );
 					}
 				}
 				else {
-					$_SESSION[ 'notification' ][ 'type' ] = "error";
-					$_SESSION[ 'notification' ][ 'message' ] = "Er ging iets mis. De ingevulde tijd is fout.";
+					new Notification( 'error', 'Er ging iets mis. De ingevulde tijd is fout.' );
 				}
+			}
+			else {
+				new Notification( 'error', 'Er ging iets mis. Niet alle velden zijn ingevuld.' );
+			}
+
+			header('location: artikel-wijzigen-form.php?artikel=' . $artikelId);
 		}
 		else {
-			$_SESSION[ 'notification' ][ 'type' ] = "error";
-			$_SESSION[ 'notification' ][ 'message' ] = "Er ging iets mis. Niet alle velden zijn ingevuld.";
+			header('location: artikel-overzicht.php');
 		}
-
-		header('location: artikel-wijzigen-form.php?artikel=' . $artikelId);
 	}
 	else {
-		header('location: artikel-overzicht.php');
+		User::logout();
+		$notification = new Notification( 'error', 'Er ging iets mis tijdens het inloggen. Probeer opnieuw');
+		header('location: login-form.php');
 	}
 
  ?>

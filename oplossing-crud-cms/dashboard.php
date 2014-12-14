@@ -1,52 +1,25 @@
 <?php 
 	
-	$message = null;
+	session_start();
 
-	if ( isset($_COOKIE['login']) ) {
+	function __autoload( $classname )
+	{
+		require_once( $classname . '.php' );
+	}
 
-		$userArray = explode( ',', $_COOKIE['login'] );
+	$notification = null;
 
-		$email = $userArray[0];
-		$saltedEmail = $userArray[1];
+	$connection = new PDO('mysql:host=localhost;dbname=opdracht-crud-cms', 'root', 'root');
 
-		$db = new PDO('mysql:host=localhost;dbname=opdracht-crud-cms', 'root', 'root');
+	if ( User::validate( $connection )) {
+		$notification = Notification::getNotification();
 
-		$emailQuery = 'SELECT * 
-											FROM users
-											WHERE email = :email';
-
-		$emailStatement = $db->prepare( $emailQuery );
-
-		$emailStatement->bindParam(':email', $email);
-
-		$emailStatement->execute();
-
-		/* Kijk of het e-mail adres al bestaat in de databank, als het bestaat wordt de database rij geplaatst in de array $users */
-		$user = array();
-		while ($row = $emailStatement->fetch( PDO::FETCH_ASSOC )) {		
-			$user[] = $row;
-		}
-		// var_dump($user);
-
-		if ( isset($user[0]) ) {
-			$salt = $user[0]['salt'];
-
-			$saltedEmailNew = hash( 'sha512' , $salt . $email );
-
-			if ( $saltedEmailNew == $saltedEmail) {
-				$message = "Welkom.";
-			}
-			else {
-				setcookie('login', "", time() - 99999999);
-				header('location: login-form.php');
-			}
-		}
-		else {
-			setcookie('login', "", time() - 99999999);
-			header('location: login-form.php');
-		}
+		$cookieExplode = explode( ',', $_COOKIE['login'] );		/* email adres uit cookie halen */
+		$email = $cookieExplode[ 0 ];
 	}
 	else {
+		User::logout();
+		$notification = new Notification( 'error', 'Er ging iets mis tijdens het inloggen. Probeer opnieuw');
 		header('location: login-form.php');
 	}
 
@@ -57,15 +30,31 @@
 <head>
 	<meta charset="UTF-8">
 	<title>Dashboard - Oplossing CRUD CMS</title>
+	<style>
+	
+		.error {
+			padding-left: 10px;
+			background-color: #F2DEDE;
+			border: 1px solid #EED3D7;
+			border-radius: 5px;
+		}
+
+		.succes {
+			padding-left: 10px;
+			background-color: #90EE90;
+			border-radius: 5px;
+		}
+
+	</style>
 </head>
 <body>
 
-	<a href="dashboard.php">Terug naar dashboard</a> | Ingelogd als <?= $email ?> | <a href="logout.php">Uitloggen</a>
+	<p>Ingelogd als <?= $email ?> | <a href="logout.php">Uitloggen</a></p>
 
 	<h1>Dashboard</h1>
 
-	<?php if ( isset($message) ): ?>
-		<p><?= $message ?></p>
+	<?php if ( isset($notification) ): ?>
+		<p class="<?= $notification[ 'type' ] ?>"><?= $notification[ 'message' ] ?></p>
 	<?php endif ?>
 
 	<ul>

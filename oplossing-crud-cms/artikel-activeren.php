@@ -2,46 +2,53 @@
 
 	session_start();
 
-	if ( isset($_GET['artikel']) ) {
-		$artikelId = $_GET['artikel'];
+	function __autoload( $classname )
+	{
+		require_once( $classname . '.php' );
+	}
 
-		try 
-		{
-			$db = new PDO('mysql:host=localhost;dbname=opdracht-crud-cms', 'root', 'root');
+	$connection = new PDO('mysql:host=localhost;dbname=opdracht-crud-cms', 'root', 'root');
+
+	if ( User::validate( $connection )) {
+
+		if ( isset($_GET['artikel']) ) {
+			$artikelId = $_GET['artikel'];
+
+			try 
+			{
+				$db = new Database( $connection );
 		
-			$updateQuery	=	'UPDATE artikels
+				$queryString = 	'UPDATE artikels
 													SET is_active = 1 - is_active
 													WHERE id = :id
 													LIMIT 1';
 
-			$updateStatement = $db->prepare( $updateQuery );
+				$parameters = array( ':id' => $artikelId );
 
-			$updateStatement->bindValue(':id', $artikelId);
+				$isActivated = $db->query( $queryString, $parameters );
 
-			$isUpdated = $updateStatement->execute();
+				if ( $isActivated ) {
+					new Notification( 'succes', 'Het artikel is geactiveerd.' );
+				}
+				else {
+					new Notification( 'error', 'Er ging iets mis. Het artikel is niet geactiveerd.' );
+				}
 
-			if ( $isUpdated ) {
-				$_SESSION[ 'notification' ][ 'type' ] = "succes";
-				$_SESSION[ 'notification' ][ 'message' ] = "Het artikel is geactiveerd.";
+				header('location: artikel-overzicht.php');
 			}
-			else {
-				$_SESSION[ 'notification' ][ 'type' ] = "error";
-				$_SESSION[ 'notification' ][ 'message' ] = "Er ging iets mis. Het artikel is niet geactiveerd.";
+			catch (Exception $e) {
+				new Notification( 'error', 'Er ging iets mis. Er kon niet worden geconnecteerd met de databank.' );
+				header('location: artikel-overzicht.php');
 			}
-
-			header('location: artikel-overzicht.php');
-		} 
-		catch (Exception $e) 
-		{
-			$_SESSION[ 'notification' ][ 'type' ] = "error";
-			$_SESSION[ 'notification' ][ 'message' ] = "Er ging iets mis. Er kon niet worden geconnecteerd met de databank.";
-		
+		}
+		else {
 			header('location: artikel-overzicht.php');
 		}
 	}
 	else {
-		
-		header('location: artikel-overzicht.php');
+		User::logout();
+		$notification = new Notification( 'error', 'Er ging iets mis tijdens het inloggen. Probeer opnieuw');
+		header('location: login-form.php');
 	}
 
  ?>

@@ -2,90 +2,50 @@
 
 	session_start();
 
-	$notificationType = null;
-	$notificationMessage = null;
-
-	if ( isset( $_SESSION[ 'notification'] ) ) {
-		$notificationType = $_SESSION[ 'notification' ][ 'type' ];
-		$notificationMessage = $_SESSION[ 'notification' ][ 'message' ];
+	function __autoload( $classname )
+	{
+		require_once( $classname . '.php' );
 	}
 
-	if ( isset($_COOKIE['login']) ) {
+	$notification = null;
 
-		$userArray = explode( ',', $_COOKIE['login'] );
+	$connection = new PDO('mysql:host=localhost;dbname=opdracht-crud-cms', 'root', 'root');
 
-		$email = $userArray[0];
-		$saltedEmail = $userArray[1];
+	if ( User::validate( $connection ) ) {
+		$notification = Notification::getNotification();
 
-		$db = new PDO('mysql:host=localhost;dbname=opdracht-crud-cms', 'root', 'root');
-
-		$emailQuery = 'SELECT * 
-											FROM users
-											WHERE email = :email';
-
-		$emailStatement = $db->prepare( $emailQuery );
-
-		$emailStatement->bindValue(':email', $email);
-
-		$emailStatement->execute();
-
-		/* Kijk of het e-mail adres al bestaat in de databank, als het bestaat wordt de database rij geplaatst in de array $users */
-		$user = array();
-		while ($row = $emailStatement->fetch( PDO::FETCH_ASSOC )) {		
-			$user[] = $row;
-		}
-		// var_dump($user);
-
-		if ( isset($user[0]) ) {
-			$salt = $user[0]['salt'];
-
-			$saltedEmailNew = hash( 'sha512' , $salt . $email );
-
-			if ( $saltedEmailNew == $saltedEmail) {
-				
-				if ( isset($_GET['artikel']) ) {
-					$artikelId = $_GET['artikel'];
-
-					$artikelQuery = 'SELECT * 
-														FROM artikels 
-														WHERE id = :id';
-
-					$artikelStatement = $db->prepare( $artikelQuery );
-
-					$artikelStatement->bindValue(':id', $artikelId);
-
-					$artikelStatement->execute();
-
-					$artikelArray = array();
-					while ($row = $artikelStatement->fetch( PDO::FETCH_ASSOC )) {		
-						$artikelArray[] = $row;
-					}
-
-					var_dump($artikelArray);
-
-					$titel = $artikelArray[0]['titel'];
-					$artikel = $artikelArray[0]['artikel'];
-					$kernwoorden = $artikelArray[0]['kernwoorden'];
-
-					$datum = $artikelArray[0]['datum'];
-					$datumExploded = explode('-', $datum);	
-					$datum = $datumExploded[2] . "-" . $datumExploded[1] . "-" . $datumExploded[0];		/* datum omdraaien van jjjj-mm-dd  =>  dd-mm-jjjj */
+		$cookieExplode = explode( ',', $_COOKIE['login'] );		/* email adres uit cookie halen */
+		$email = $cookieExplode[ 0 ];
 
 
-				}
 
+		if ( isset($_GET['artikel']) ) {
+			$artikelId = $_GET['artikel'];
+
+			$db = new Database( $connection );
+
+			$queryString = 	'SELECT * 
+												FROM artikels 
+												WHERE id = :id';
+
+			$parameters = array( ':id' => $artikelId );
+
+			$artikelData = $db->query( $queryString, $parameters );
+
+			if ( $artikelData ) {
+				$titel = $artikelData[ 'data' ][ 0 ][ 'titel' ];
+				$artikel = $artikelData[ 'data' ][ 0 ][ 'artikel' ];
+				$kernwoorden = $artikelData[ 'data' ][ 0 ][ 'kernwoorden' ];
+
+				$datum = $artikelData[ 'data' ][ 0 ][ 'datum' ];
+				$datumExploded = explode( '-', $datum );
+				$datum = $datumExploded[2] . "-" . $datumExploded[1] . "-" . $datumExploded[0];		 //datum omdraaien van jjjj-mm-dd  =>  dd-mm-jjjj 
 			}
-			else {
-				setcookie('login', "", time() - 99999999);
-				header('location: login-form.php');
-			}
-		}
-		else {
-			setcookie('login', "", time() - 99999999);
-			header('location: login-form.php');
 		}
 	}
 	else {
+		User::logout();
+		$notification = new Notification( 'error', 'Er ging iets mis tijdens het inloggen. Probeer opnieuw');
 		header('location: login-form.php');
 	}
 
@@ -136,8 +96,8 @@
 
 	<h1>Artikel wijzigen</h1>
 
-	<?php if ( isset($notificationMessage) ): ?>
-		<p class="<?= $notificationType ?>"><?= $notificationMessage ?></p>
+	<?php if ( isset($notification) ): ?>
+		<p class="<?= $notification[ 'type' ] ?>"><?= $notification[ 'message' ] ?></p>
 	<?php endif ?>
 
 	<form action="artikel-wijzigen.php" method="POST">

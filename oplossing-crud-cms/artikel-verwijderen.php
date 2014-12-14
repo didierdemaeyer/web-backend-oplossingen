@@ -2,46 +2,50 @@
 
 	session_start();
 
-	if ( isset($_GET['artikel']) ) {
-		$artikelId = $_GET['artikel'];
+	function __autoload( $classname )
+	{
+		require_once( $classname . '.php' );
+	}
 
-		try 
-		{
-			$db = new PDO('mysql:host=localhost;dbname=opdracht-crud-cms', 'root', 'root');
-		
-			$updateQuery	=	'UPDATE artikels
+	$connection = new PDO('mysql:host=localhost;dbname=opdracht-crud-cms', 'root', 'root');
+
+	if ( User::validate( $connection )) {
+
+		if ( isset($_GET['artikel']) ) {
+			$artikelId = $_GET['artikel'];
+
+			try 
+			{
+				$db = new Database( $connection );
+
+				$queryString = 	'UPDATE artikels
 													SET is_archived = 1
 													WHERE id = :id
 													LIMIT 1';
 
-			$updateStatement = $db->prepare( $updateQuery );
+				$parameters = array( ':id' => $artikelId );
 
-			$updateStatement->bindValue(':id', $artikelId);
+				$isDeleted = $db->query( $queryString, $parameters );
 
-			$isUpdated = $updateStatement->execute();
-
-			if ( $isUpdated ) {
-				$_SESSION[ 'notification' ][ 'type' ] = "succes";
-				$_SESSION[ 'notification' ][ 'message' ] = "Het artikel is verwijderd.";
+				if ( $isDeleted ) {
+					new Notification( 'succes', 'Het artikel is verwijderd.' );
+				}
+				else {
+					new Notification( 'error', 'Er ging iets mis. Het artikel is niet verwijderd.' );
+				}
+			} 
+			catch (Exception $e) 
+			{
+				new Notification( 'error', 'Er ging iets mis. Er kon niet worden geconnecteerd met de databank.' );
 			}
-			else {
-				$_SESSION[ 'notification' ][ 'type' ] = "error";
-				$_SESSION[ 'notification' ][ 'message' ] = "Er ging iets mis. Het artikel is niet verwijderd.";
-			}
-
-			header('location: artikel-overzicht.php');
-		} 
-		catch (Exception $e) 
-		{
-			$_SESSION[ 'notification' ][ 'type' ] = "error";
-			$_SESSION[ 'notification' ][ 'message' ] = "Er ging iets mis. Er kon niet worden geconnecteerd met de databank.";
-		
-			header('location: artikel-overzicht.php');
 		}
-	}
-	else {
 		
 		header('location: artikel-overzicht.php');
 	}
-	
+	else {
+		User::logout();
+		$notification = new Notification( 'error', 'Er ging iets mis tijdens het inloggen. Probeer opnieuw');
+		header('location: login-form.php');
+	}
+
  ?>
