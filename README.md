@@ -3,8 +3,7 @@ web-backend-oplossingen
 
 Nog aan te passen:
 
-- opdracht-security-login: klasses gebruiken
-- opdracht-crud-cms: klasses gebruiken
+- opdracht-file-upload: Uitbreiding maken, zorgen dat oude profielfoto verwijderd wordt
 
 Extra's:
 
