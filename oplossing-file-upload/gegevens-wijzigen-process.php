@@ -39,6 +39,24 @@
 			
 				$db = new Database( $connection );
 
+
+
+				/* Vorige profielfoto selecteren en verplaatsen naar prullenbak */
+				$queryString = 'SELECT profile_picture
+													FROM users
+													WHERE email = :current_email';
+
+				$parameters = array( ':current_email' => $current_email );
+
+				$userData = $db->query( $queryString, $parameters );
+
+				$old_profile_picture = $userData[ 'data' ][ 0 ][ 'profile_picture' ];
+
+				unlink( ROOT . "/img/" . $old_profile_picture );	//verwijder de oude profile_picture van de server
+
+
+
+				/* verandering van email en profile_picture uploaden naar server */
 				$queryString = 'UPDATE users
 													SET email = :new_email,
 															profile_picture	= :profile_picture
@@ -54,6 +72,8 @@
 				if ( $gegevensGewijzigd ) {
 					move_uploaded_file( $_FILES[ 'profile-picture' ][ 'tmp_name' ], ROOT . "/img/" . $bestandsnaam );
 
+
+					/* Nieuwe COOKIE aanmaken met het nieuwe email adres zodat de user niet uitgelogd wordt */
 					$queryString = 'SELECT * 
 														FROM users
 														WHERE email = :new_email';
@@ -65,6 +85,7 @@
 					$salt = $userData[ 'data' ][ 0 ][ 'salt' ];
 
 					User::createCookie( $salt, $new_email);
+					
 
 				 	new Notification( 'succes', 'Gegevens werden succesvol gewijzigd.' );
 			 	} 

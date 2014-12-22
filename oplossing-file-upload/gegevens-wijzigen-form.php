@@ -36,7 +36,7 @@
 			$profilePicture = "img/" . $userData[ 'data' ][ 0 ][ 'profile_picture' ];
 		}
 		
-		var_dump($userData[ 'data' ][ 0 ][ 'profile_picture' ]);
+		// var_dump($userData[ 'data' ][ 0 ][ 'profile_picture' ]);
 
 	}
 	else {
