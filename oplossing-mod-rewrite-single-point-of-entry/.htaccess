@@ -1,0 +1,9 @@
+RewriteEngine On
+
+RewriteRule ^bieren/overview/([^/\.]+)/?$ index.php?controller=bieren&method=overview&id=$1
+
+RewriteRule ^bieren/insert/?$ index.php?controller=bieren&method=insert
+
+RewriteRule ^bieren/delete/([^/\.]+)/?$ index.php?controller=bieren&method=delete&id=$1
+
+RewriteRule ^bieren/update/([^/\.]+)/?$ index.php?controller=bieren&method=update&id=$1

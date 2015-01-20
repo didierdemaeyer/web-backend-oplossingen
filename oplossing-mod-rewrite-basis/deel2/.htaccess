@@ -1,0 +1,4 @@
+RewriteEngine On
+
+
+RewriteRule ^rasmus/?$ original.php?user=rasmus

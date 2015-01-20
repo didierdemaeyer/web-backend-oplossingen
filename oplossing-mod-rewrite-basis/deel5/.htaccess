@@ -1,0 +1,4 @@
+RewriteEngine On
+
+
+RewriteRule ^([^/\.]+)/([^/\.]+)/?$ original.php?role=$1&user=$2

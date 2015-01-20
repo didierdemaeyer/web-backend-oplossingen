@@ -1,0 +1,8 @@
+RewriteEngine On
+
+#als je naar original.php surft wordt de inhoud van redirect.php weergegeven:
+#RewriteRule ^original.php$ redirect.php
+
+
+#original.php instellen als indexpagina
+DirectoryIndex original.php
