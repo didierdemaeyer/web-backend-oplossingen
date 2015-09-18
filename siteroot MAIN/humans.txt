@@ -1,0 +1,18 @@
+# humanstxt.org/
+# The humans responsible & technology colophon
+
+# TEAM
+
+    Dries Van Schevensteen -- Developer -- @Dries_VS
+    Senne De Valck -- Developer
+
+# THANKS
+
+    
+
+# TECHNOLOGY COLOPHON
+
+    HTML5, CSS3
+    jQuery, Modernizr,
+    CreateJS,
+    PHP

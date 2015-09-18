@@ -1,0 +1,22 @@
+{
+  "name": "IKF World Korfball Championship 2015 Belgium Game",
+  "version": "0.0.0",
+  "authors": [
+    "Senne De Valck & Dries Van Schevensteen"
+  ],
+  "description": "Endless runner game for World Championship Korfball 2015",
+  "license": "NO",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "easeljs": "~0.8.0",
+    "SoundJS": "~0.6.0",
+    "TweenJS": "~0.6.0",
+    "PreloadJS": "~0.6.0"
+  }
+}

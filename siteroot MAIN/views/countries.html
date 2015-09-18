@@ -1,0 +1,6 @@
+<h2>Countries</h2>
+
+<form name="countryForm" ng-submit="submit()">
+    <select ng-init="countryCode" ng-model="countryCode"  ng-options="country.name as country.countryCode for country in countries"></select>
+    <button type="submit">Select Country</button>
+</form>

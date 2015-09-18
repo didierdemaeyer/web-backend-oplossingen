@@ -1,0 +1,34 @@
+<h2>Scores</h2>
+<a href ng-click="back()">Back</a>
+<br>
+<div>
+    Me
+    <ul id="active" ng-repeat="score in scores.me">
+        <li>
+            <span class="name">{{score.name}}</span>
+            <span class="score">{{score.score}}</span> 
+            <span class="country">{{score.country}}</span>
+        </li>
+    </ul>
+</div>
+<br>
+<div>
+    Top 10
+    <ul id="top10" ng-repeat="score in scores.top">
+        <li>
+            <span class="name">{{score.name}}</span>
+            <span class="score">{{score.score}}</span> 
+            <span class="country">{{score.country}}</span> 
+        </li>
+    </ul>
+</div>
+
+    <!-- <ul id="top10" >
+        <li>No scores to show</li>
+        
+        <li class="me">
+            <span class="name">Dries</span> 
+            <span class="score">3764</span>
+            <span class="country">Belgium</span>
+        </li>
+    </ul> -->

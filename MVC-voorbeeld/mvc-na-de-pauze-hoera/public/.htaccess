@@ -1,0 +1,12 @@
+RewriteEngine On
+
+# het path mag geen directory (!-d) of filename (-f) zijn
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+
+# Het deel na de root worden meegegeven als get-variabele aan index.php
+RewriteRule ^(.*)$ index.php?hook=$1 [L]
+
+#PT = passthrough, zal redirecten ook al is het geen file
+#L = last, zal stoppen wanneer aan deze regel voldaan wordt
